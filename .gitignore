@@ -1,0 +1,44 @@
+# ignores all files and folders that contain
+# passwords or secret files
+# generated files (volumes, certificates)
+# temporary/system/editor files
+
+# === SECRETS & ENV FILES ===
+secrets/
+src/.env
+
+# === GENERATED DATA ===
+# Docker volumes, cached builds, temporary containers
+# paths — ensures anything generated in containers
+# (database data, logs, or WordPress files) isn’t committed
+src/requirements/*/data/
+src/requirements/*/tmp/
+src/requirements/*/logs/
+src/requirements/*/www/
+src/requirements/*/wp-content/
+src/requirements/*/mysql/
+src/requirements/*/mysqld/
+src/requirements/*/cache/
+src/requirements/*/.cache/
+
+# === OS / EDITOR FILES === 
+# editor/system leftovers
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === SYSTEM / MISC ===
+# SSL/TLS certificates and keys, also sensitive
+__pycache__/
+*.log
+*.bak
+*.old
+*.crt
+*.key
+
+# === CONTAINER ORCHESTRATION ===
+# (in case of docker-compose override files or temp stacks)
+docker-compose.override.yml

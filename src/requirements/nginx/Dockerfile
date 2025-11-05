@@ -12,12 +12,12 @@ RUN apt-get update && \
 # cleans up th epackage index cache that's downloaded during apt-get update.
 # reduces the final image size by removing unnec. metadata.
 
-COPY config/default.conf /etc/nginx/conf.d/default.conf
+COPY conf/default.conf /etc/nginx/conf.d/default.conf
 # copies the nginx config into the container.
 # adds a custom server block to extend nginx's default configuration
 
-COPY tools/ssl/nginx.crt /etc/ssl/private/nginx.crt
-COPY tools/ssl/nginx.key /etc/ssl/private/nginx.key
+COPY tools/nginx.crt /etc/ssl/private/nginx.crt
+COPY tools/nginx.key /etc/ssl/private/nginx.key
 # Copy SSL certificate and key for HTTPS
 # These are generated beforehand and mounted into the container image
 
@@ -27,3 +27,4 @@ EXPOSE 443
 CMD ["nginx", "-g", "daemon off;"]
 # runs nginx in the foreground so the container stays alive
 # Run NGINX in the foreground (required for Docker)
+

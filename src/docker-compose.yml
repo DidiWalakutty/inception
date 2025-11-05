@@ -1,0 +1,99 @@
+# Services = Individ. containers (services) that make up the app
+
+services:                                   
+    mariadb:
+        build: requirements/mariadb
+        container_name: mariadb
+        volumes:
+              - mariadb_data:/var/lib/mysql
+        networks:
+              - inception_network
+        image: mariadb
+        restart: unless-stopped
+        env_file:
+              - .env
+        secrets:
+              - db_root_password
+              - db_user_password
+        # This check ensures the database is fully initialized and ready to connect.
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 10s
+
+    wordpress:
+        build: requirements/wordpress
+        container_name: wordpress
+        depends_on:
+            - mariadb
+        volumes:
+            - wordpress_data:/var/www/html
+        networks:
+            - inception_network
+        image: wordpress
+        restart: unless-stopped
+        env_file:
+            - .env
+        secrets:
+            - wp_admin_password
+            - wp_user_password
+        healthcheck:
+            test: ["CMD", "pidof", "php-fpm7.4"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 10s
+
+    nginx:
+        build: requirements/nginx
+        container_name: nginx
+        depends_on:
+            - wordpress
+        ports:                          # nginx cont. must be the sole entry point into your
+            - "443:443"                 # infrastructure, accessible only via port 443 using TSLv1.2 || TLSv1.3 protocol
+        volumes:
+            - wordpress_data:/var/www/html
+        networks:
+            - inception_network
+        image: nginx
+        restart: unless-stopped
+        env_file:
+            - .env
+        healthcheck:
+            test: ["CMD", "curl", "-k", "-f", "https://localhost:443"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 10s
+
+volumes:
+    mariadb_data:
+        name: mariadb_vol
+        driver: local
+        driver_opts:
+            type: none
+            device: /home/${USER}/data/mariadb
+            o: bind
+    wordpress_data:
+        name: wordpress_vol
+        driver: local
+        driver_opts:
+            type: none
+            device: /home/${USER}/data/wordpress
+            o: bind
+
+networks:
+    inception_network:
+        driver: bridge
+
+secrets:
+    db_root_password:
+        file: ./secrets/db_root_password.txt
+    db_user_password:
+        file: ./secrets/db_user_password.txt
+    wp_admin_password:
+        file: ./secrets/wp_admin_password.txt
+    wp_user_password:
+        file: ./secrets/wp_user_password.txt

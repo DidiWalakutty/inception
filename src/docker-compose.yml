@@ -60,7 +60,7 @@ services:
         image: nginx
         restart: unless-stopped
         env_file:
-            - .env
+            - ~/.local/.env
         healthcheck:
             test: ["CMD", "curl", "-k", "-f", "https://localhost:443"]
             interval: 30s
@@ -70,14 +70,12 @@ services:
 
 volumes:
     mariadb_data:
-        name: mariadb_vol
         driver: local
         driver_opts:
             type: none
             device: /home/${USER}/data/mariadb
             o: bind
     wordpress_data:
-        name: wordpress_vol
         driver: local
         driver_opts:
             type: none
@@ -90,10 +88,10 @@ networks:
 
 secrets:
     db_root_password:
-        file: ./secrets/db_root_password.txt
+        file: ../secrets/db_root_password.txt
     db_user_password:
-        file: ./secrets/db_user_password.txt
+        file: ../secrets/db_user_password.txt
     wp_admin_password:
-        file: ./secrets/wp_admin_password.txt
+        file: ../secrets/wp_admin_password.txt
     wp_user_password:
-        file: ./secrets/wp_user_password.txt
+        file: ../secrets/wp_user_password.txt

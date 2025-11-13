@@ -12,7 +12,7 @@ COPY ./conf/my.cnf /etc/mysql/my.cnf
 # Setup directories + permission
 RUN mkdir -p /var/run/mysqld /var/lib/mysql && \
 	chown -R mysql:mysql /var/run/mysqld /var/lib/mysql && \
-	chmod 755 /var/run/mysqld
+	chmod 777 /var/run/mysqld
 
 # Bootstrap script for database setup + creating user 
 COPY ./tools/db_setup.sh /usr/local/bin/

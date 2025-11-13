@@ -11,7 +11,7 @@ services:
         image: mariadb
         restart: unless-stopped
         env_file:
-              - .env
+              - ~/.local/.env
         secrets:
               - db_root_password
               - db_user_password
@@ -35,7 +35,7 @@ services:
         image: wordpress
         restart: unless-stopped
         env_file:
-            - .env
+            - ~/.local/.env
         secrets:
             - wp_admin_password
             - wp_user_password
@@ -50,7 +50,8 @@ services:
         build: requirements/nginx
         container_name: nginx
         depends_on:
-            - wordpress
+            wordpress:
+              condition: service_healthy
         ports:                          # nginx cont. must be the sole entry point into your
             - "443:443"                 # infrastructure, accessible only via port 443 using TSLv1.2 || TLSv1.3 protocol
         volumes:

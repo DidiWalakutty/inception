@@ -1,6 +1,7 @@
 #!/bin/bash
+# ^ ensures your script runs with the Bash shell
 # ===========================
-# Simple MariaDB Bootstrap for WordPress
+# Simple MariaDB Bootstrap
 # ===========================
 
 # --- Load variables from .env and Docker secrets ---
@@ -10,8 +11,10 @@ MYSQL_PASSWORD="$(cat ${DATABASE_USER_PW_FILE})"   		# Password for WordPress us
 MYSQL_ROOT_PASSWORD="$(cat ${DATABASE_ROOT_PW_FILE})"	# Root password (from secret)
 DATA_DIR="/var/lib/mysql"                           	# Default MariaDB data directory
 
-# if !/data/mariadb ?? 
-mkdir -p ${HOME}/data/mariadb
+# --- Ensure host data directory exists --- 
+if [ ! -d "${HOME}/data/mariadb" ]; then				# Check if data directory exists
+	mkdir -p ${HOME}/data/mariadb
+fi														# every if-statement must be closed with a matching 'fi' == end block
 
 # --- Initialize database if it's empty ---
 if [ ! -d "${DATA_DIR}/mysql" ]; then						# Check if MariaDB system DB exists

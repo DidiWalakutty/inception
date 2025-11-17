@@ -15,7 +15,6 @@ services:
         secrets:
               - db_root_password
               - db_user_password
-        # This check ensures the database is fully initialized and ready to connect.
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
             interval: 30s
@@ -39,6 +38,7 @@ services:
         secrets:
             - wp_admin_password
             - wp_user_password
+            - db_user_password
         healthcheck:
             test: ["CMD", "pidof", "php-fpm7.4"]
             interval: 30s
@@ -52,8 +52,8 @@ services:
         depends_on:
             wordpress:
               condition: service_healthy
-        ports:                          # nginx cont. must be the sole entry point into your
-            - "443:443"                 # infrastructure, accessible only via port 443 using TSLv1.2 || TLSv1.3 protocol
+        ports:
+            - "443:443"
         volumes:
             - wordpress_data:/var/www/html
         networks:
@@ -89,10 +89,10 @@ networks:
 
 secrets:
     db_root_password:
-        file: ../secrets/db_root_password.txt
+        file: ~/.local/secrets/db_root_password.txt
     db_user_password:
-        file: ../secrets/db_user_password.txt
+        file: ~/.local/secrets/db_user_password.txt
     wp_admin_password:
-        file: ../secrets/wp_admin_password.txt
+        file: ~/.local/secrets/wp_admin_password.txt
     wp_user_password:
-        file: ../secrets/wp_user_password.txt
+        file: ~/.local/secrets/wp_user_password.txt

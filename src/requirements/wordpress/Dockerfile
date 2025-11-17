@@ -31,4 +31,3 @@ WORKDIR /var/www/html
 
 # Start PHP-FPM
 CMD ["/usr/local/bin/wordpress_setup.sh"]
-# CMD ["tail -f", "/dev/null"]

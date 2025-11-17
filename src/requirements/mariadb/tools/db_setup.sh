@@ -1,5 +1,5 @@
 #!/bin/bash
-# ^ ensures your script runs with the Bash shell
+
 # ===========================
 # Simple MariaDB Bootstrap
 # ===========================
@@ -14,10 +14,11 @@ DATA_DIR="/var/lib/mysql"                           	# Default MariaDB data dire
 # --- Ensure host data directory exists --- 
 if [ ! -d "${HOME}/data/mariadb" ]; then				# Check if data directory exists
 	mkdir -p ${HOME}/data/mariadb
+	echo "created mariadb data directory"
 fi														# every if-statement must be closed with a matching 'fi' == end block
 
-# --- Initialize database if it's empty ---
-if [ ! -d "${DATA_DIR}/mysql" ]; then						# Check if MariaDB system DB exists
+# --- Initialize database if WordPress DB is missing ---
+if [ ! -d "${DATA_DIR}/${MYSQL_DB}" ]; then						# Check if MariaDB system DB exists
     echo "[INFO] Initializing MariaDB data directory..."
     
     # Create the system databases and metadata

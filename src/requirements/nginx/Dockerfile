@@ -9,30 +9,28 @@ RUN apt update && apt install -y nginx openssl curl && \
 	# nginx: the web server
 	# openssl: to generate self-signed TLS certs
 	# curl: useful for healthchecks
-# cleans up th epackage index cache that's downloaded during apt-get update.
+# cleans up the package index cache that's downloaded during apt-get update.
 # reduces the final image size by removing unnec. metadata.
+
+# Create a directory in the NGINX container where we store the key and crt.
+RUN mkdir -p /etc/nginx/ssl && \
+	chmod 700 /etc/nginx/ssl
 
 COPY conf/default.conf /etc/nginx/conf.d/default.conf
 # copies the nginx config into the container.
 # adds a custom server block to extend nginx's default configuration
 
-# elke keer dat we nginx opnieuw bouwen, nieuwe key + cert nodig
-# doen aan eind, wanneer project bijna klaar is
-# openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-#  -keyout /etc/ssl/private/nginx.key \
-#  -out /etc/ssl/private/nginx.crt \
-#  -subj "/C=NL/ST=IDF/L=Amsterdam/O=42/OU=42/CN=diwalaku.42.fr"
-
-# Wanneer project zo goed als klaar, dan deze hieronder verwijderen.
-COPY tools/nginx.crt /etc/ssl/private/nginx.crt
-COPY tools/nginx.key /etc/ssl/private/nginx.key
-# Copy SSL certificate and key for HTTPS
-# These are generated beforehand and mounted into the container image
+# generates a new .key and .crt with every build.
+# writes those into the container
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/nginx/ssl/nginx.key \
+    -out /etc/nginx/ssl/nginx.crt \
+    -subj "/C=NL/ST=IDF/L=Amsterdam/O=42/OU=42/CN=diwalaku.42.fr"
 
 EXPOSE 443
 # declares that the container listens on port 443 (HTTPS)
 
 CMD ["nginx", "-g", "daemon off;"]
-# runs nginx in the foreground so the container stays alive
-# Run NGINX in the foreground (required for Docker)
+# run nginx in the foreground (daemon off) so the container stays alive
+# required in Docker: if the main process exits, the container stops
 

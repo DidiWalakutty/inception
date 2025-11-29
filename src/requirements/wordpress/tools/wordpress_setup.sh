@@ -37,42 +37,80 @@ PHP
     wp user create ${WORDPRESS_USER} ${WORDPRESS_USER_EMAIL} \
         --role=subscriber \
         --user_pass=$(cat ${WORDPRESS_USER_PW_FILE}) \
-        --allow-root || echo "Extra user already exists"
+        --allow-root || echo "User already exists"
 
     chown -R www-data:www-data /var/www/html
 
     #wp post delete 1 --force --allow-root
     #wp post delete 2 --force --allow-root
 
-    wp theme install twentytwentyfour --activate --allow-root
+    wp theme install twentytwentyfour --activate --allow-root || true #check this || true
 
-	# --- Create a blank "Home" page ---
-    HOME_ID=$(wp post create --post_type=page --post_title='Home' --post_status=publish --porcelain --allow-root)
+	# ===============================
+    # Delete Sample Page (clean setup)
+    # ===============================
+    echo "[INFO] Removing default Sample Page..."
+    SAMPLE_ID=$(wp post list --post_type=page --title='Sample Page' --field=ID --allow-root)
+    if [ "$SAMPLE_ID" != "" ]; then
+        wp post delete $SAMPLE_ID --force --allow-root
+    fi
 
+	# ===============================
+    # Create Homepage
+    # ===============================
+	echo "[INFO] Creating Home page..."
+    HOME_ID=$(wp post create \
+        --post_type=page \
+        --post_title='Home' \
+        --post_content='Welcome to my Inception WordPress website!' \
+        --post_status=publish \
+        --porcelain \
+        --allow-root)
+	
     # --- Set "Home" as the front page ---
     wp option update show_on_front 'page' --allow-root
     wp option update page_on_front $HOME_ID --allow-root
+	
+	# Enable comments on homepage
+    wp post update $HOME_ID --comment_status=open --allow-root
+	
+	# ===============================
+    # Create Second Page
+    # ===============================
+    echo "[INFO] Creating second page..."
+    SECOND_ID=$(wp post create \
+        --post_type=page \
+        --post_title='Let us talk about the Kākāpō' \
+        --post_content='This page explains something about this bird from New Zealand' \
+        --post_status=publish \
+        --porcelain \
+        --allow-root)
 
-	# Update homepage (rename Sample Page)
-    #HOMEPAGE_ID=$(wp post list --post_type=page --title='Sample Page' --field=ID --allow-root)
-    #wp post update $HOMEPAGE_ID \
-    #    --post_title='My Inception' \
-    #    --post_content='My project page' \
-    #    --allow-root
+	# ===============================
+    # Create Menu + Login link
+    # ===============================
+    echo "[INFO] Creating navigation menu..."
+    MENU_EXISTS=$(wp menu list --fields=term_id --format=ids --allow-root)
 
-	# Set "My Inception" the front page
+    if [ "$MENU_EXISTS" = "" ]; then
+        MENU_ID=$(wp menu create "Main Menu" --porcelain --allow-root)
 
-	#wp option update show_on_front 'page' --allow-root
-	#wp option update page_on_front $HOMEPAGE_ID --allow-root
+        # Add Home page
+        wp menu item add-post "Main Menu" $HOME_ID --allow-root
 
-    # wp post create --post_type=post \
-    #    --post_title='Kakapo' \
-    #    --post_content='Let us talk about Kakapos!' \
-    #    --post_status=publish --allow-root
+        # Add second page
+        wp menu item add-post "Main Menu" $SECOND_ID --allow-root
+
+        # Add login link
+        wp menu item add-custom "Main Menu" "Login" "/wp-login.php" --allow-root
+
+        # Assign menu to theme (primary location)
+        wp menu location assign "Main Menu" primary --allow-root || true
+    fi
 
     wp option update blog_public 0 --allow-root
     wp option update default_pingback_flag 0 --allow-root
     wp option update default_ping_status 0 --allow-root
 fi
 
-exec php-fpm7.4 -F
+exec php-fpm7.4 -F # check if 7.4 of 8.2

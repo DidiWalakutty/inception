@@ -1,116 +1,75 @@
 #!/bin/bash
+set -e
 
-# ===========================
-# Simple WordPress Bootstrap
-# ===========================
+mkdir -p /run/php
+chown -R www-data:www-data /run/php
 
-# --- Ensure host data directory exist ---
-if [ ! -d "${HOME}/data/wordpress" ]; then
-    mkdir -p ${HOME}/data/wordpress
-	echo "created wordpress data directory" 
-fi
+if [ ! -e /var/www/html/$DOMAIN_NAME/.wordpress_setup_done ]; then	
+	mkdir -p /var/www/html/$DOMAIN_NAME
+	chown -R www-data:www-data /var/www/html/$DOMAIN_NAME
+	chmod -R 755 /var/www/html/$DOMAIN_NAME
+	cd /var/www/html/$DOMAIN_NAME
 
-# --- Check if WordPress is already installed ---
-if [ ! -f "wp-config.php" ]; then
-    wp core download --allow-root
+	curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+	mv wp-cli.phar /usr/local/bin/wp
+	chmod +x /usr/local/bin/wp
 
-    wp config create --allow-root \
-        --dbname=${WORDPRESS_DATABASE_NAME} \
-        --dbuser=${DATABASE_USER} \
-        --dbpass=$(cat ${DATABASE_USER_PW_FILE}) \
-        --dbhost=${WORDPRESS_DATABASE_HOST} \
-        --extra-php <<PHP
-define( 'WP_DEBUG', false );
-define( 'WP_DEBUG_LOG', false );
-define( 'WP_DEBUG_DISPLAY', false );
-PHP
 
-    wp core install --allow-root \
-        --url=${DOMAIN_NAME} \
-        --title=${WORDPRESS_SITE_TITLE} \
-        --admin_user=${WORDPRESS_ADMIN} \
-        --admin_password=$(cat ${WORDPRESS_ADMIN_PW_FILE}) \
-        --admin_email=${WORDPRESS_ADMIN_EMAIL}
+	sleep 10
+	until nc -z $WORDPRESS_DATABASE_HOST 3306; do echo 'Waiting db...' >>output && sleep 5; done
+    
+	
+	if [ ! -f /var/www/html/$DOMAIN_NAME/wp-config.php ]; then
+    	echo "Downloading WordPress..."
+    	wp core download --allow-root
 
-    sleep 5  # waits 5 seconds to ensure DB setup is ready
+    	echo "Creating wp-config.php..."
+    	wp config create \
+			--path=/var/www/html/$DOMAIN_NAME \
+            --dbname="$WORDPRESS_DATABASE_NAME" \
+            --dbuser="$DATABASE_USER" \
+            --dbpass="$(cat "${DATABASE_USER_PW_FILE}")" \
+            --dbhost="$WORDPRESS_DATABASE_HOST:3306" \
+            --allow-root
 
-    wp user create ${WORDPRESS_USER} ${WORDPRESS_USER_EMAIL} \
-        --role=subscriber \
-        --user_pass=$(cat ${WORDPRESS_USER_PW_FILE}) \
-        --allow-root || echo "User already exists"
+    	echo "Installing WordPress..."
+    	wp core install \
+			--path=/var/www/html/$DOMAIN_NAME \
+            --url="$DOMAIN_NAME/" \
+            --title="Inception" \
+            --admin_user="$WORDPRESS_ADMIN" \
+            --admin_password="$(cat "${WORDPRESS_ADMIN_PW_FILE}")" \
+            --admin_email="$WORDPRESS_ADMIN_EMAIL" \
+            --allow-root
 
-    chown -R www-data:www-data /var/www/html
+    	echo "Creating additional user..."
+    	wp user create "$WORDPRESS_USER" "$WORDPRESS_USER_EMAIL" \
+			--path=/var/www/html/$DOMAIN_NAME \
+    	    --path=/var/www/html/$DOMAIN_NAME \
+            --role=author \
+            --user_pass="$(cat "${WORDPRESS_USER_PW_FILE}")" \
+            --allow-root
+		
+		# until nc -z redis 6379; do echo 'Waiting for Redis...' && sleep 5; done
 
-    #wp post delete 1 --force --allow-root
-    #wp post delete 2 --force --allow-root
+		# echo "Installing & Activating Redis Cache Plugin..."
+        # wp plugin install redis-cache --activate --allow-root
+		
+        # echo "Setting Redis Cache Config in wp-config.php..."
+        # wp config set WP_REDIS_HOST "redis" --allow-root
+        # wp config set WP_REDIS_PORT "6379" --raw --allow-root
+        # wp config set WP_CACHE true --raw --allow-root
+		# wp config set WP_CACHE true --raw --allow-root --path=/var/www/html/$DOMAIN_NAME
 
-    wp theme install twentytwentyfour --activate --allow-root || true #check this || true
-
-	# ===============================
-    # Delete Sample Page (clean setup)
-    # ===============================
-    echo "[INFO] Removing default Sample Page..."
-    SAMPLE_ID=$(wp post list --post_type=page --title='Sample Page' --field=ID --allow-root)
-    if [ "$SAMPLE_ID" != "" ]; then
-        wp post delete $SAMPLE_ID --force --allow-root
+        # echo "Enabling Redis Cache..."
+        # wp redis enable --allow-root --path=/var/www/html/$DOMAIN_NAME
     fi
 
-	# ===============================
-    # Create Homepage
-    # ===============================
-	echo "[INFO] Creating Home page..."
-    HOME_ID=$(wp post create \
-        --post_type=page \
-        --post_title='Home' \
-        --post_content='Welcome to my Inception WordPress website!' \
-        --post_status=publish \
-        --porcelain \
-        --allow-root)
-	
-    # --- Set "Home" as the front page ---
-    wp option update show_on_front 'page' --allow-root
-    wp option update page_on_front $HOME_ID --allow-root
-	
-	# Enable comments on homepage
-    wp post update $HOME_ID --comment_status=open --allow-root
-	
-	# ===============================
-    # Create Second Page
-    # ===============================
-    echo "[INFO] Creating second page..."
-    SECOND_ID=$(wp post create \
-        --post_type=page \
-        --post_title='Let us talk about the Kākāpō' \
-        --post_content='This page explains something about this bird from New Zealand' \
-        --post_status=publish \
-        --porcelain \
-        --allow-root)
-
-	# ===============================
-    # Create Menu + Login link
-    # ===============================
-    echo "[INFO] Creating navigation menu..."
-    MENU_EXISTS=$(wp menu list --fields=term_id --format=ids --allow-root)
-
-    if [ "$MENU_EXISTS" = "" ]; then
-        MENU_ID=$(wp menu create "Main Menu" --porcelain --allow-root)
-
-        # Add Home page
-        wp menu item add-post "Main Menu" $HOME_ID --allow-root
-
-        # Add second page
-        wp menu item add-post "Main Menu" $SECOND_ID --allow-root
-
-        # Add login link
-        wp menu item add-custom "Main Menu" "Login" "/wp-login.php" --allow-root
-
-        # Assign menu to theme (primary location)
-        wp menu location assign "Main Menu" primary --allow-root || true
-    fi
-
-    wp option update blog_public 0 --allow-root
-    wp option update default_pingback_flag 0 --allow-root
-    wp option update default_ping_status 0 --allow-root
+    touch /var/www/html/$DOMAIN_NAME/.wordpress_setup_done
+else
+    echo "WordPress already exists. Skipping download."
 fi
 
-exec php-fpm7.4 -F # check if 7.4 of 8.2
+
+# Start PHP-FPM
+exec "$@"

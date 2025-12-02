@@ -9,7 +9,7 @@ services:
         networks:
               - inception_network
         image: mariadb:42
-        restart: unless-stopped
+        restart: always
         env_file:
               - ~/.local/.env
         secrets:
@@ -32,7 +32,7 @@ services:
         networks:
             - inception_network
         image: wordpress:42
-        restart: unless-stopped
+        restart: always
         env_file:
             - ~/.local/.env
         secrets:
@@ -40,7 +40,7 @@ services:
             - wp_user_password
             - db_user_password
         healthcheck:
-            test: ["CMD", "pidof", "php-fpm7.4"]
+            test: ["CMD", "pidof", "php-fpm8.3"]
             interval: 30s
             timeout: 10s
             retries: 3
@@ -59,7 +59,7 @@ services:
         networks:
             - inception_network
         image: nginx:42
-        restart: unless-stopped
+        restart: always
         env_file:
             - ~/.local/.env
         healthcheck:

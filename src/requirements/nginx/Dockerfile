@@ -17,6 +17,7 @@ RUN mkdir -p /etc/nginx/ssl && \
 	chmod 700 /etc/nginx/ssl
 
 COPY conf/default.conf /etc/nginx/conf.d/default.conf
+RUN rm /etc/nginx/sites-enabled/default
 # copies the nginx config into the container.
 # adds a custom server block to extend nginx's default configuration
 

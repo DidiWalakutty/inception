@@ -4,26 +4,24 @@ set -e
 mkdir -p /run/php
 chown -R www-data:www-data /run/php
 
+# Check if WordPress is already set up
 if [ ! -e "/var/www/html/$DOMAIN_NAME/.wordpress_setup_done" ]; then
-    mkdir -p "/var/www/html/$DOMAIN_NAME"
-    chown -R www-data:www-data "/var/www/html/$DOMAIN_NAME"
-    chmod -R 755 "/var/www/html/$DOMAIN_NAME"
+    mkdir -p "/var/www/html/$DOMAIN_NAME" 								# Create domain directory
+    chown -R www-data:www-data "/var/www/html/$DOMAIN_NAME"				# Make www-data owner
+    chmod -R 755 "/var/www/html/$DOMAIN_NAME"							# Set permissions
     cd "/var/www/html/$DOMAIN_NAME"
 
-    # Install WP-CLI if not installed
+    # Install WP-CLI if not already installed
     if [ ! -f /usr/local/bin/wp ]; then
         curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
         mv wp-cli.phar /usr/local/bin/wp
         chmod +x /usr/local/bin/wp
     fi
 
-    echo "Waiting for database..."
-    until nc -z "$WORDPRESS_DATABASE_HOST" 3306; do
-        echo 'Waiting for DB...' >> output
-        sleep 5
-    done
+    echo "Waiting for database to be ready..."
+	sleep 5
 
-    # Download and configure WordPress
+    # Download + create WordPress config
     if [ ! -f wp-config.php ]; then
         echo "Downloading WordPress..."
         wp core download --allow-root
@@ -45,7 +43,6 @@ if [ ! -e "/var/www/html/$DOMAIN_NAME/.wordpress_setup_done" ]; then
             --admin_email="$WORDPRESS_ADMIN_EMAIL" \
             --allow-root
 
-		# Install Twenty Twenty-One theme
 		wp theme install twentytwentyone --activate --allow-root
 
         echo "Creating additional user..."
@@ -54,7 +51,7 @@ if [ ! -e "/var/www/html/$DOMAIN_NAME/.wordpress_setup_done" ]; then
             --user_pass="$(cat "$WORDPRESS_USER_PW_FILE")" \
             --allow-root
 
-        # Delete default post
+        # Remove default post
         DEFAULT_POST_ID=$(wp post list --post_type=post --field=ID --allow-root | head -n 1 || true)
         if [ -n "$DEFAULT_POST_ID" ]; then
             wp post delete "$DEFAULT_POST_ID" --force --allow-root
@@ -70,7 +67,6 @@ if [ ! -e "/var/www/html/$DOMAIN_NAME/.wordpress_setup_done" ]; then
             --porcelain \
             --allow-root)
 
-        # Set the page as the front page
         wp option update show_on_front page --allow-root
         wp option update page_on_front "$HOMEPAGE_ID" --allow-root
 

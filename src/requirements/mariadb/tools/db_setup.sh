@@ -1,50 +1,48 @@
 #!/bin/bash
 
-# ===========================
-# Simple MariaDB Bootstrap
-# ===========================
+# =========================== #
+# Simple MariaDB Bootstrap    #
+# =========================== #
 
-# --- Load variables from .env and Docker secrets ---
-MYSQL_DB="${WORDPRESS_DATABASE_NAME}"					# WordPress database name
-MYSQL_USER="${DATABASE_USER}"                       	# MariaDB user for WordPress
-MYSQL_PASSWORD="$(cat ${DATABASE_USER_PW_FILE})"   		# Password for WordPress user (from secret)
-MYSQL_ROOT_PASSWORD="$(cat ${DATABASE_ROOT_PW_FILE})"	# Root password (from secret)
+MYSQL_DB="${WORDPRESS_DATABASE_NAME}"
+MYSQL_USER="${DATABASE_USER}"                       	# Username for the WordPress database
+MYSQL_PASSWORD="$(cat ${DATABASE_USER_PW_FILE})"   		# User password
+MYSQL_ROOT_PASSWORD="$(cat ${DATABASE_ROOT_PW_FILE})"	# Root password
 DATA_DIR="/var/lib/mysql"                           	# Default MariaDB data directory
 
-# --- Ensure host data directory exists --- 
-if [ ! -d "${HOME}/data/mariadb" ]; then				# Check if data directory exists
+# --- Ensure persistent data directory exists --- 
+if [ ! -d "${HOME}/data/mariadb" ]; then
 	mkdir -p ${HOME}/data/mariadb
 	echo "created mariadb data directory"
-fi														# every if-statement must be closed with a matching 'fi' == end block
+fi
 
 # --- Initialize database if WordPress DB is missing ---
-if [ ! -d "${DATA_DIR}/${MYSQL_DB}" ]; then						# Check if MariaDB system DB exists
+if [ ! -d "${DATA_DIR}/${MYSQL_DB}" ]; then					# Check if MariaDB system DB exists, skip setup if it does
     echo "[INFO] Initializing MariaDB data directory..."
     
-    # Create the system databases and metadata
-    mysql_install_db --user=mysql --datadir="${DATA_DIR}"	# Create initial DB files (system tables, metadata)
+    mysql_install_db --user=mysql --datadir="${DATA_DIR}"	# Create system databases files (tables, metadata, etc)
 
     echo "[INFO] Starting MariaDB temporarily..."
-    mysqld_safe --datadir="${DATA_DIR}" &					# Start MariaDB in the background temporarily
+    mysqld_safe --datadir="${DATA_DIR}" &					# Start MariaDB in the background temporarily (creates main database, users etc)
 
     echo "[INFO] Waiting for MariaDB to start..."
-    until mysqladmin ping >/dev/null 2>&1; do				# Wait until the server is ready
+    until mysqladmin ping >/dev/null 2>&1; do				# Waits until the server is ready
         sleep 1
     done
 
     echo "[INFO] Creating WordPress database and user..."
-    mysql -u root <<EOF																# Connect to MariaDB as root
-CREATE DATABASE IF NOT EXISTS \`${MYSQL_DB}\`;										# Create WP database if it doesn't exist
-CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';	# Create DB user
+    mysql -u root <<EOF																# Runs SQL commands directly inside MariaDB
+CREATE DATABASE IF NOT EXISTS \`${MYSQL_DB}\`;										# Create WordPress DB
+CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';	# Create WP DB user
 GRANT ALL PRIVILEGES ON \`${MYSQL_DB}\`.* TO '${MYSQL_USER}'@'%';					# Give user full privileges on WP DB
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';				# Set root password
 FLUSH PRIVILEGES;																	# Apply changes
 EOF
 
     echo "[INFO] Shutting down temporary MariaDB..."
-    mysqladmin -u root -p"${MYSQL_ROOT_PASSWORD}" shutdown							# Stop temporary MariaDB safely
+    mysqladmin -u root -p"${MYSQL_ROOT_PASSWORD}" shutdown							# Stops temporary MariaDB safely after setup
 fi
 
 # --- Start MariaDB normally ---
 echo "[INFO] Starting MariaDB in normal mode..."
-exec mysqld_safe --datadir="${DATA_DIR}"			# Start MariaDB in normal mode; keeps container running
+exec mysqld_safe --datadir="${DATA_DIR}"					# Start MariaDB in normal mode; keeps container running

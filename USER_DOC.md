@@ -6,12 +6,12 @@ This project provides a fully containerized WordPress website using:
 - **WordPress** - what the site does. It handles website content (pages/posts, menuts, themes etc). It processes PHP (server programming language used to generate dynamic sites) scripts via PHP-FPM (the process manager that executes PHP code) and queries the database to display and manage content.
 - **NGINX** - how the site is delivered. It's a web server that delivers the website to users. It serves static files like images and styles, and sends PHP requests to WordPress to generate pages. It also handles HTTPS to keep the site secure.
 
-When a user visits the website, NGINX receives the request, forwards PHP requests to WordPress, which queries MariaDB for data and generates the page that Nginx sends back to the user.
+Workflow: When a user visits the website, Nginx receives the request, forwards PHP requests to WordPress, which queries MariaDB for data and generates the page that Nginx sends back to the user.
 
 ---
 
 ## Starting and Stopping the Project
-Please check the Makefile for all possibilities.
+Please check the Makefile for all available options.
 
 ### Start the project
 From the project root, run: `make all`
@@ -33,7 +33,7 @@ This will stop all containers safely, removes containers, but keeps your data in
 
 ## Access the Website and Admin Panel
 
-- Website: https://diwalaku.42.fr or https://localost
+- Website: https://diwalaku.42.fr or https://localhost
 - WordPress Admin Panel: either use the icon, or go to https://diwalaku.42.fr/wp-admin
 
 Please use the `.env` file and `secrets/` to access the information to log in.
@@ -62,7 +62,7 @@ You can verify that all services are running and mandatory things have been set 
 - Ensure NGINX can only be accessed by port 443: `wget http://diwalaku.42.fr` or `curl -v http://diwalaku.42.fr`
 - Ensure that a SSL/TLS certificate is used: `openssl s_client -connect diwalaku.42.fr:443 </dev/null` or `curl -I https://diwalaku.42.fr`
 - Ensure the use of a TLS v1.2 or v1.3: `openssl s_client -connect diwalaku.42.fr:443 -tls1_2` or `openssl s_client -connect diwalaku.42.fr:443 -tls1_3`
-- Reboot VM: `sude reboot`
+- Reboot VM: `sudo reboot`
 
 ## Verify that MariaDB isn't empty
 1. log into your mariadb container: `docker exec -it mariadb bash`

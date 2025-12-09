@@ -87,3 +87,23 @@ Use `exit;` to leave the container.
 ### Port 443
 To show the NGINX container is only bound to port 443: `ss -tlnp | grep nginx`
 Use `exit;` to leave the container.
+
+-- 
+
+## Entrypoint Scripts
+I use small setup scripts inside the WordPress and MariaDB conainers.
+These scripts run automatically the first time the project starts and prepares everything so the end user doesn't have to do any manual setup.
+
+- **MariaDB** - 
+This script will create the database, the database user and makes sure the database files are stored safely so they won't be deleted on restart.
+Without this script, the database wouldn't exist yet and WordPress couldn't connect to it.
+It touches a marker file (.db_setup_done) so it doesn’t run twice.
+
+- **WordPress** - 
+This downloads and installs WordPress if it's not present.
+It sets up the main WordPress settings (site url, admin and user account, the first page/post etc).
+It makes sure the right theme and menu are activated.
+It also ensures the files have the correct permissions so WordPress can run properly.
+
+WordPress only needs to be configured once, and the script automates this for us.
+It touches a marker file (.wordpress_setup_done) so it doesn't run twice.

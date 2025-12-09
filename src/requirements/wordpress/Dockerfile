@@ -1,6 +1,4 @@
-# Dockerfile to create the WordPress image
-
-FROM debian:bullseye
+FROM debian:bookworm
 
 RUN apt update && apt install -y \
     lsb-release \
@@ -9,7 +7,7 @@ RUN apt update && apt install -y \
     curl \
     gnupg
 
-# Add Sury repo for PHP 8.3
+# Add repo for PHP 8.3
 RUN curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/php.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" \
     > /etc/apt/sources.list.d/php.list
@@ -24,10 +22,9 @@ RUN apt update && apt install -y \
     php8.3-soap \
     php8.3-xml \
     php8.3-xmlrpc \
-    php8.3-zip \
-	netcat
+    php8.3-zip && apt autoremove -y && apt autoclean
 
-# WordPress CLI installation
+# WordPress CLI (command line interface) installation
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
     && chmod +x wp-cli.phar \
     && mv wp-cli.phar /usr/local/bin/wp
@@ -39,11 +36,8 @@ RUN mkdir -p /run/php
 COPY tools/wordpress_setup.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/wordpress_setup.sh
 
-# WORKDIR /var/www/html
-
 #script must be from entrypoint
 ENTRYPOINT ["/usr/local/bin/wordpress_setup.sh"]
 
 # Start PHP-FPM
-#CMD ["/usr/local/bin/wordpress_setup.sh"]
 CMD ["/usr/sbin/php-fpm8.3", "-F"]

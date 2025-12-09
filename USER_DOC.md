@@ -34,7 +34,7 @@ This will stop all containers safely, removes containers, but keeps your data in
 ## Access the Website and Admin Panel
 
 - Website: https://diwalaku.42.fr or https://localhost
-- WordPress Admin Panel: either use the icon, or go to https://diwalaku.42.fr/wp-admin
+- WordPress Admin Panel: go to https://diwalaku.42.fr/wp-admin
 
 Please use the `.env` file and `secrets/` to access the information to log in.
 
@@ -44,6 +44,7 @@ Please use the `.env` file and `secrets/` to access the information to log in.
 
 Both the `.env` file and `secrets/` directory are stored in `cd ~/.local/`. 
 You can open this by entering the command `code .`.
+The NGINX `.crt` and `.key` can be found in the NGINX container.
 
 --- 
 
@@ -71,11 +72,17 @@ You can verify that all services are running and mandatory things have been set 
 4. Then we need to demonstrate that the database isn’t empty:
 
         - SHOW DATABASES;
-        - USE wordpress_db;
+        - USE wordpress;
         - SHOW TABLES;
         - SELECT * FROM wp_users;
+		or
+		- SOHW DATABASES;
+		- USE mysql;
+		- SHOW TABLES;
+		- SELECT User, Host FROM user; 
 
 This will show our database isn’t empty.
+You can check the WP-users, or the MariaDB user.
 Use `exit;` to leave the container.
 
 ## Show .key and .crt in NGINX + port 443

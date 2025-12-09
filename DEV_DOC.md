@@ -15,12 +15,11 @@ This document explains how a developer can set up the environment from scratch, 
 
 ### The VM setup
 - You must first create a VM through the Oracle Virtual Box.
-- You create a new VM in the folder `~/sgoinfre` and won't select an ISO image. You'll download this from the official Debian website.
+- You create a new VM in the folder `~/sgoinfre` and won't select an ISO image. You'll download this from the official Debian website and upload it later during the installation.
 - Choose your type (Linux) and install the correct Debian/Alpine version.
 - Make sure you have enough memory and processors available. I chose 4096mg and 8 processors.
 - I chose a disk size of 20GB to make sure I have enough space for my project.
 - Continu setting up your VM.
-- Install your system updates and required packages (Docker, Docker Compose, Make etc).
 
 ### Install prerequisites
 - `apt update && apt upgrade`

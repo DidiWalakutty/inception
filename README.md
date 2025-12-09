@@ -9,8 +9,12 @@ The goal is to allow anyone to deploy a ready-to-use WordPress website quickly u
 2. Open and log into the Virtual Machine.
 3. Send the repository to the VM using: `rsync -Azr 'repository' -e 'ssh -p 2222' didi@localhost:/home/didi/Desktop/`.
 	Don't use 'repository/`, because it'll send only the files in the directory to the VM, instead of the full directory.
-4. On the VM Desktop, open VSCode (log in using the VM password).
-5. Start the evaluation from the copied repository on the VM.
+	You can see if it worked by checking the VM's desktop.
+4. In the cloned repo, connect with the VM, using: `ssh -p 2222 didi@localhost` and log in with the password.
+5. On the Host Desktop, open VSCode, use the button in the button left to 'Open a Remote Window', 'Connect to Host' and log in using the VM password.
+6. Open a folder, and it'll show `/home/didi/`, now add to that `Desktop/<name_of_cloned_repo>` and click on `ok`.
+7. You are now connected to the cloned repo in the VM.
+6. You can now start the evaluation.
 
 ## Resources
 - Official Docker docs: https://docs.docker.com/get-started/

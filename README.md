@@ -1,16 +1,16 @@
 *This project has been created as part of the 42 curriculum by diwalaku.42.fr*
 
 ## Description
-This project sets up a fully containerized WordPress website using MariaDB, PHP-FPM and Nginx.  
+This project sets up a fully containerized WordPress website using MariaDB, PHP-FPM and NGINX.  
 The goal is to allow anyone to deploy a ready-to-use WordPress website quickly using Docker. It needs to be secure, have separates services and configurations.
 
 ## Instructions
 1. Clone the repository.
 2. Open and log into the Virtual Machine.
-3. Open a terminal on the host and log in using `ssh sudo@localhost -p 2222`.
-4. Send the repository to the VM using: `rsync -AZR 'repo' -e 'ssh -p 2222' didi@localhost:/home/didi/temp/` *(Check this before evaluation!)*
-5. On the VM Desktop, open VSCode (log in using the VM password).
-6. Start the evaluation from the copied repository on the VM.
+3. Send the repository to the VM using: `rsync -AZR 'repository' -e 'ssh -p 2222' didi@localhost:/home/didi/Desktop/`.
+	Don't use 'repository/`, because it'll send all files in the directory instead of the full directory.
+4. On the VM Desktop, open VSCode (log in using the VM password).
+5. Start the evaluation from the copied repository on the VM.
 
 ## Resources
 - Official Docker docs: https://docs.docker.com/get-started/

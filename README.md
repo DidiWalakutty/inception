@@ -7,8 +7,8 @@ The goal is to allow anyone to deploy a ready-to-use WordPress website quickly u
 ## Instructions
 1. Clone the repository.
 2. Open and log into the Virtual Machine.
-3. Send the repository to the VM using: `rsync -AZR 'repository' -e 'ssh -p 2222' didi@localhost:/home/didi/Desktop/`.
-	Don't use 'repository/`, because it'll send all files in the directory instead of the full directory.
+3. Send the repository to the VM using: `rsync -Azr 'repository' -e 'ssh -p 2222' didi@localhost:/home/didi/Desktop/`.
+	Don't use 'repository/`, because it'll send all files in the directory to the VM, instead of the full directory.
 4. On the VM Desktop, open VSCode (log in using the VM password).
 5. Start the evaluation from the copied repository on the VM.
 

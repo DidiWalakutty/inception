@@ -52,6 +52,26 @@ It should contain the location for your NGINX .cert and .key, usernames for your
 Same goes here: it's unsafe to share these online, so keep it somewhere the VM can find it.
 - I saved the `.env` and `secrets/` in my `/.local/` directory, where it is stored. The `.env` file knows where to find the passwords.
 
+### Entrypoint scripts
+I also created initialization scripts for MariaDB and WordPress.
+It has a small shell script that runs automatically when the container starts.
+These scripts handle first-time configurations, database creation, WordPress installation etc.
+After changing a script, make sure you rebuild the image.
+
+- **MariaDB** - 
+- Starts MariaDB with safe configuration.
+- Creates the database ($MYSQL_DATABASE).
+- Creates the users and applies permissions.
+- Imports any initial SQL files.
+- Ensures the data directory belongs to the MariaDB user.
+- Touches a markerfile (.db_setup_done), so it doens't run twice.
+
+- **WordPress** -
+- Ensures correct permissions for `/var/www/html`.
+- Download WordPress if missing.
+- Generates `wp-config.php` with env variables.
+- Runs WP-CLI commands such as: installing WP, creating admin user and user, enabling HTTPS URLs, comments, themes, plugins etc.
+- Creates `.wordpress_setup_done` so the script doesn't reinstall Wordpress.
 
 ---
 
